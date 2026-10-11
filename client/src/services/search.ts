@@ -40,12 +40,43 @@ function sanitizeFilters(raw: unknown): SearchFilters {
 /** Plain keyword fallback — always works, no network needed. */
 export function keywordSearch(prompt: string): SearchFilters {
   const q = prompt.toLowerCase();
+  const festival =
+    q.includes('navratri') || q.includes('navarathri')
+      ? 'Navarathri'
+      : q.includes('diwali')
+        ? 'Diwali'
+        : q.includes('janmashtami')
+          ? 'Janmashtami'
+          : q.includes('shivaratri') || q.includes('shivratri')
+            ? 'Maha Shivaratri'
+            : q.includes('holi')
+              ? 'Holi'
+              : q.includes('ganesh')
+                ? 'Ganesh Utsav'
+                : '';
   return {
     ...EMPTY_FILTERS,
     deities: KNOWN_DEITIES.filter((d) => q.includes(d.toLowerCase())),
     cities: KNOWN_CITIES.filter((c) => q.includes(c.toLowerCase())),
+    festival,
     keywords: prompt.slice(0, 120),
   };
+}
+
+const STOPWORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'with', 'near', 'nearby', 'around',
+  'in', 'of', 'for', 'to', 'pooja', 'poojas', 'temple', 'temples',
+  'best', 'top', 'any', 'all', 'me', 'my',
+]);
+
+/** True when any significant keyword word appears in the haystack. */
+function keywordMatch(hay: string, keywords: string): boolean {
+  const words = keywords
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
+  if (words.length === 0) return true;
+  return words.some((w) => hay.includes(w));
 }
 
 /**
@@ -81,9 +112,8 @@ export function applyFilters(templesList: Temple[], f: SearchFilters): Temple[] 
         return false;
     }
     if (f.keywords) {
-      const needle = f.keywords.toLowerCase();
       const hay = `${t.name} ${t.city} ${t.address} ${t.deities.join(' ')} ${t.tradition}`.toLowerCase();
-      if (!hay.includes(needle)) return false;
+      if (!keywordMatch(hay, f.keywords)) return false;
     }
     return true;
   });
