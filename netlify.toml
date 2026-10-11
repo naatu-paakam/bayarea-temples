@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "vite"
+  port = 8888
+  targetPort = 5180
+  functions = "netlify/functions"
+
+# SPA fallback — prerendered /temples/<slug>/index.html files are served directly when present
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
