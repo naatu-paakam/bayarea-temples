@@ -7,7 +7,12 @@ body {
 }
 
 .temple-gradient {
-  background: linear-gradient(135deg, #7b1e1e 0%, #a83232 55%, #e8722a 100%);
+  background-color: #7b1e1e;
+  background-image: linear-gradient(135deg, #7b1e1e 0%, #a83232 55%, #e8722a 100%);
+}
+
+.hero-text {
+  text-shadow: 0 1px 4px rgba(60, 10, 10, 0.45);
 }
 
 .card-hover {
