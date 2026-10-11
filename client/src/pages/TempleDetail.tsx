@@ -107,8 +107,8 @@ export default function TempleDetail() {
             </span>
           ))}
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">{temple.name}</h1>
-        <p className="text-white/85 mb-4">
+        <h1 className="hero-text text-3xl md:text-4xl font-bold mb-2">{temple.name}</h1>
+        <p className="hero-text text-white/85 mb-4">
           📍 {temple.address} · {temple.tradition}
         </p>
         <div className="flex items-center gap-4 text-white">

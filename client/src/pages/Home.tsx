@@ -16,8 +16,8 @@ export default function Home() {
           <p className="inline-block bg-white/15 rounded-full px-4 py-1 text-sm mb-4">
             🪔 Navarathri 2026 · Oct 11–20
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">Discover Bay Area Temples</h1>
-          <p className="text-white/85 text-lg mb-8 max-w-2xl mx-auto">
+          <h1 className="hero-text text-4xl md:text-5xl font-bold mb-3">Discover Bay Area Temples</h1>
+          <p className="hero-text text-white/85 text-lg mb-8 max-w-2xl mx-auto">
             Search in plain words, browse by deity, and plan festival visits — 14 temples ranked by devotee reviews.
           </p>
           <SearchBar large />

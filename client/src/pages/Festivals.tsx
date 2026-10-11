@@ -7,8 +7,8 @@ export default function Festivals() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <section className="temple-gradient text-white rounded-2xl p-6 md:p-10 mb-8">
         <p className="text-white/80 text-sm mb-1">Now celebrating</p>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">🪔 Navarathri 2026</h1>
-        <p className="text-white/85 max-w-2xl">
+        <h1 className="hero-text text-3xl md:text-4xl font-bold mb-2">🪔 Navarathri 2026</h1>
+        <p className="hero-text text-white/85 max-w-2xl">
           October 11–20 — nine nights of Devi worship. Durga Pooja programs, Garba nights and special alankarams
           across the Bay Area’s temples.
         </p>
