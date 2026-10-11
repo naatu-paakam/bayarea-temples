@@ -3,7 +3,6 @@ import SearchBar from '../components/SearchBar';
 import TempleCard from '../components/TempleCard';
 import { temples, allDeities } from '../data/temples';
 
-const featured = temples.filter((t) => t.featured);
 const mostReviewed = [...temples]
   .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
   .slice(0, 6);
@@ -36,21 +35,6 @@ export default function Home() {
           <Link to="/festivals" className="font-semibold text-maroon underline">
             View Navarathri programs →
           </Link>
-        </section>
-
-        {/* Featured */}
-        <section className="mt-10">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-2xl font-bold">Featured Temples</h2>
-            <Link to="/temples" className="text-maroon font-semibold">
-              Explore all →
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {featured.map((t) => (
-              <TempleCard key={t.id} temple={t} />
-            ))}
-          </div>
         </section>
 
         {/* Most reviewed */}
