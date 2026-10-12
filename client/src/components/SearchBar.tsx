@@ -25,7 +25,7 @@ export default function SearchBar({ large = false }: { large?: boolean }) {
       if (filters.keywords) params.set('q', filters.keywords);
       params.set('sort', filters.sort);
       params.set('prompt', prompt.trim());
-      navigate(`/temples?${params.toString()}`);
+      navigate(`/temples?${params.toString()}`, { state: { answer: ans } });
     } finally {
       setBusy(false);
     }

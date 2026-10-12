@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import TempleCard from '../components/TempleCard';
 import { temples, allDeities, allCities, allRegions, REVIEW_DISCLAIMER } from '../data/temples';
 import { applyFilters, type SearchFilters } from '../services/search';
@@ -8,6 +8,9 @@ const REGION_FILTERS = ['All', 'Featured', ...allRegions];
 
 export default function Temples() {
   const [params] = useSearchParams();
+  const { state } = useLocation() as { state: { answer?: string } | null };
+  const aiAnswer = state?.answer ?? '';
+
   const [deity, setDeity] = useState(params.get('deity') ?? '');
   const [city, setCity] = useState(params.get('city') ?? '');
   const [regionTab, setRegionTab] = useState('All');
@@ -54,15 +57,25 @@ export default function Temples() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-1">Discover Temples</h1>
-      <p className="text-muted mb-6">
+      <p className="text-muted mb-4">
         {promptQuote ? (
           <>
-            Results for <em className="text-ink">“{promptQuote}”</em>
+            Results for <em className="text-ink">"{promptQuote}"</em>
           </>
         ) : (
           'Filter by deity, city or region — or search in plain words from the homepage.'
         )}
       </p>
+
+      {/* AI answer panel — shown when navigated from the Ask search bar */}
+      {aiAnswer && (
+        <div className="mb-6 bg-[#fdf6ee] border border-[#e8d5b5] rounded-2xl px-5 py-4">
+          <p className="text-[13px] font-semibold text-maroon mb-1 flex items-center gap-1.5">
+            🪔 Temple guide
+          </p>
+          <p className="text-[15px] text-ink leading-relaxed">{aiAnswer}</p>
+        </div>
+      )}
 
       {/* Filter chips */}
       <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Region filter">
