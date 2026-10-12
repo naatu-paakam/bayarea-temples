@@ -24,6 +24,7 @@ import articlesData from '../../client/src/data/articles.json' with { type: 'jso
 const ALLOWED_ORIGINS = [
   'https://bayarea-temples.netlify.app',
   'https://naatu-paakam.github.io',
+  'http://localhost:8888',
 ];
 
 function corsHeaders(event) {
