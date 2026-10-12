@@ -158,6 +158,56 @@ ${buildTempleContext()}
 ═══ ARTICLES ═══
 ${buildArticleContext()}`;
 
+// ── Web search ────────────────────────────────────────────────────────────────
+// Uses Brave Search API if BRAVE_SEARCH_API_KEY is set, otherwise Wikipedia.
+// Returns 1–3 crisp sentences, or '' on failure.
+async function webSearch(query) {
+  try {
+    const braveKey = process.env.BRAVE_SEARCH_API_KEY;
+
+    if (braveKey) {
+      // Brave Search — structured web results (upgrade path)
+      const q = encodeURIComponent(`${query} Bay Area Hindu temple`);
+      const res = await fetch(
+        `https://api.search.brave.com/res/v1/web/search?q=${q}&count=3&search_lang=en`,
+        { headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': braveKey } }
+      );
+      if (!res.ok) throw new Error(`Brave ${res.status}`);
+      const data = await res.json();
+      const snippets = (data.web?.results || [])
+        .slice(0, 2).map(r => r.description || r.snippet || '').filter(Boolean);
+      return snippets.join(' ').slice(0, 350) || '';
+    }
+
+    // Wikipedia — free, no key, works well for Hindu festivals & temples
+    // 1. Find the most relevant article title
+    const searchQ = encodeURIComponent(query.length < 20 ? `${query} Hindu festival` : query);
+    const searchRes = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQ}&srlimit=1&format=json&origin=*`,
+      { headers: { 'User-Agent': 'BayAreaTemples/1.0 (bayarea-temples.netlify.app)' } }
+    );
+    if (!searchRes.ok) throw new Error(`Wikipedia search ${searchRes.status}`);
+    const searchData = await searchRes.json();
+    const title = searchData?.query?.search?.[0]?.title;
+    if (!title) return '';
+
+    // 2. Fetch the page summary (clean extract, no markup)
+    const summaryRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+      { headers: { 'User-Agent': 'BayAreaTemples/1.0 (bayarea-temples.netlify.app)' } }
+    );
+    if (!summaryRes.ok) return '';
+    const summary = await summaryRes.json();
+    const extract = summary.extract || '';
+    // Return first 2 sentences, max 350 chars
+    const sentences = extract.match(/[^.!?]+[.!?]+/g) || [];
+    return sentences.slice(0, 2).join(' ').slice(0, 350);
+  } catch (err) {
+    console.warn('webSearch failed:', err.message);
+    return '';
+  }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -174,6 +224,8 @@ export async function handler(event) {
     return json(400, { error: 'Invalid JSON body' }, event);
   }
   if (!prompt) return json(400, { error: 'prompt required' }, event);
+
+  // webSearch fires after Claude so we can use the detected festival/deity as the search term
 
   const MODEL = 'claude-haiku-4-5';
   const requestBody = {
@@ -246,8 +298,16 @@ export async function handler(event) {
       keywords: typeof parsed.filters?.keywords === 'string' ? parsed.filters.keywords.slice(0, 120) : '',
     };
 
+    // Use the detected festival / deity / keyword as the Wikipedia search term
+    const searchTerm = filters.festival
+      || filters.deities[0]
+      || filters.keywords
+      || prompt;
+    const webSnippet = await webSearch(searchTerm);
+
     return json(200, {
       answer: String(parsed.answer || '').slice(0, 600),
+      webSearch: webSnippet,
       filters,
     }, event);
   } catch (err) {

@@ -14,7 +14,7 @@ export default function SearchBar({ large = false }: { large?: boolean }) {
     setBusy(true);
     setAnswer('');
     try {
-      const { answer: ans, filters } = await askClaude(prompt);
+      const { answer: ans, webSearch, filters } = await askClaude(prompt);
       if (ans) setAnswer(ans);
 
       const params = new URLSearchParams();
@@ -25,7 +25,7 @@ export default function SearchBar({ large = false }: { large?: boolean }) {
       if (filters.keywords) params.set('q', filters.keywords);
       params.set('sort', filters.sort);
       params.set('prompt', prompt.trim());
-      navigate(`/temples?${params.toString()}`, { state: { answer: ans } });
+      navigate(`/temples?${params.toString()}`, { state: { answer: ans, webSearch } });
     } finally {
       setBusy(false);
     }

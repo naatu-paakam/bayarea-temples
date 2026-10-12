@@ -86,7 +86,7 @@ function keywordMatch(hay: string, keywords: string): boolean {
  */
 export async function askClaude(
   prompt: string,
-): Promise<{ answer: string; filters: SearchFilters; viaLLM: boolean }> {
+): Promise<{ answer: string; webSearch: string; filters: SearchFilters; viaLLM: boolean }> {
   const trimmed = prompt.trim().slice(0, 500);
   if (!trimmed) return { answer: '', filters: EMPTY_FILTERS, viaLLM: false };
   try {
@@ -99,12 +99,13 @@ export async function askClaude(
     const data = await res.json();
     return {
       answer: String(data.answer || ''),
+      webSearch: String(data.webSearch || ''),
       filters: sanitizeFilters(data.filters),
       viaLLM: true,
     };
   } catch (err) {
     console.warn('askClaude fell back to keyword search:', err);
-    return { answer: '', filters: keywordSearch(trimmed), viaLLM: false };
+    return { answer: '', webSearch: '', filters: keywordSearch(trimmed), viaLLM: false };
   }
 }
 

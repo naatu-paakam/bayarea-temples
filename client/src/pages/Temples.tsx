@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import TempleCard from '../components/TempleCard';
+import AnswerPanels from '../components/AnswerPanels';
 import { temples, allDeities, allCities, allRegions, REVIEW_DISCLAIMER } from '../data/temples';
 import { applyFilters, type SearchFilters } from '../services/search';
 
@@ -8,8 +9,9 @@ const REGION_FILTERS = ['All', 'Featured', ...allRegions];
 
 export default function Temples() {
   const [params] = useSearchParams();
-  const { state } = useLocation() as { state: { answer?: string } | null };
-  const aiAnswer = state?.answer ?? '';
+  const { state } = useLocation() as { state: { answer?: string; webSearch?: string } | null };
+  const aiAnswer   = state?.answer    ?? '';
+  const webSnippet = state?.webSearch ?? '';
 
   const [deity, setDeity] = useState(params.get('deity') ?? '');
   const [city, setCity] = useState(params.get('city') ?? '');
@@ -67,14 +69,9 @@ export default function Temples() {
         )}
       </p>
 
-      {/* AI answer panel — shown when navigated from the Ask search bar */}
-      {aiAnswer && (
-        <div className="mb-6 bg-[#fdf6ee] border border-[#e8d5b5] rounded-2xl px-5 py-4">
-          <p className="text-[13px] font-semibold text-maroon mb-1 flex items-center gap-1.5">
-            🪔 Temple guide
-          </p>
-          <p className="text-[15px] text-ink leading-relaxed">{aiAnswer}</p>
-        </div>
+      {/* AI answer panels — shown when navigated from the Ask search bar */}
+      {(aiAnswer || webSnippet) && (
+        <AnswerPanels answer={aiAnswer} webSnippet={webSnippet} />
       )}
 
       {/* Filter chips */}
