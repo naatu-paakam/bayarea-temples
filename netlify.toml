@@ -7,6 +7,7 @@
   command = "vite"
   port = 8888
   targetPort = 5180
+  framework = "vite"
   functions = "netlify/functions"
 
 # SPA fallback — prerendered /temples/<slug>/index.html files are served directly when present
