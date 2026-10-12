@@ -12,6 +12,37 @@ import meta from './temples-meta.json' with { type: 'json' };
 
 const ALLOWED_SORTS = ['most-reviewed', 'highest-rated', 'name'];
 
+// CORS: this function is a public HTTPS endpoint. Browsers only allow
+// cross-origin calls from origins named here; every other browser origin is
+// refused at the preflight step. The two allowed callers are the Netlify
+// deployment (same-origin) and the GitHub Pages preview.
+// Note: CORS is a browser-only policy — curl and scripts can still call the
+// endpoint directly, so quota protection comes from the Anthropic spend limit
+// in the Anthropic console, not from CORS.
+const ALLOWED_ORIGINS = [
+  'https://bayarea-temples.netlify.app',
+  'https://naatu-paakam.github.io',
+];
+
+const corsHeaders = (event) => {
+  const headers = {
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  };
+  const origin = event?.headers?.origin || event?.headers?.Origin;
+  if (typeof origin === 'string' && ALLOWED_ORIGINS.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
+};
+
+const json = (statusCode, obj, event) => ({
+  statusCode,
+  headers: { 'Content-Type': 'application/json', ...corsHeaders(event) },
+  body: JSON.stringify(obj),
+});
+
 const SYSTEM_PROMPT = `You classify Hindu-temple search queries into JSON filters.
 Respond with ONLY a JSON object, no prose. Schema:
 {"deities": string[], "cities": string[], "regions": string[], "festival": string, "sort": "most-reviewed"|"highest-rated"|"name", "keywords": string}
@@ -27,20 +58,23 @@ Allowed cities: ${[...new Set(meta.temples.map((t) => t.city))].join(', ')}
 Allowed regions: ${[...new Set(meta.temples.map((t) => t.region))].join(', ')}`;
 
 export async function handler(event) {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: corsHeaders(event), body: '' };
+  }
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'POST only' }) };
+    return json(405, { error: 'POST only' }, event);
   }
   let prompt = '';
   try {
     prompt = String(JSON.parse(event.body || '{}').prompt || '').trim().slice(0, 500);
   } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: 'invalid JSON body' }) };
+    return json(400, { error: 'invalid JSON body' }, event);
   }
-  if (!prompt) return { statusCode: 400, body: JSON.stringify({ error: 'prompt required' }) };
+  if (!prompt) return json(400, { error: 'prompt required' }, event);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { statusCode: 503, body: JSON.stringify({ error: 'search service not configured' }) };
+    return json(503, { error: 'search service not configured' }, event);
   }
 
   try {
@@ -66,8 +100,8 @@ export async function handler(event) {
     if (jsonStart < 0 || jsonEnd < 0) throw new Error('no JSON in LLM response');
     const filters = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
     if (!ALLOWED_SORTS.includes(filters.sort)) filters.sort = 'most-reviewed';
-    return { statusCode: 200, body: JSON.stringify({ filters }) };
+    return json(200, { filters }, event);
   } catch (err) {
-    return { statusCode: 502, body: JSON.stringify({ error: 'classification failed' }) };
+    return json(502, { error: 'classification failed' }, event);
   }
 }
