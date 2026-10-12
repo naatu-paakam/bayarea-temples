@@ -34,7 +34,7 @@ export default function SearchBar({ large = false }: { large?: boolean }) {
         onChange={(e) => setPrompt(e.target.value)}
         placeholder='Try "Shiva temples near Milpitas with Navratri poojas"'
         aria-label="Search temples in plain words"
-        className={`flex-1 rounded-full border border-[#e8d5b5] bg-white px-5 shadow-sm focus:outline-none focus:ring-2 focus:ring-saffron ${
+        className={`flex-1 rounded-full border border-[#e8d5b5] bg-white text-ink placeholder:text-[#a3947d] px-5 shadow-sm focus:outline-none focus:ring-2 focus:ring-saffron ${
           large ? 'py-4 text-lg' : 'py-2.5'
         }`}
       />
