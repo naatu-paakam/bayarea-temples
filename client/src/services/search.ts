@@ -89,8 +89,12 @@ export async function askClaude(
 ): Promise<{ answer: string; webSearch: string; filters: SearchFilters; viaLLM: boolean }> {
   const trimmed = prompt.trim().slice(0, 500);
   if (!trimmed) return { answer: '', webSearch: '', filters: EMPTY_FILTERS, viaLLM: false };
+  // On GitHub Pages there is no server — call the Netlify function directly
+  const fnBase = window.location.hostname === 'naatu-paakam.github.io'
+    ? 'https://bayarea-temples.netlify.app'
+    : '';
   try {
-    const res = await fetch('/.netlify/functions/search-classify', {
+    const res = await fetch(`${fnBase}/.netlify/functions/search-classify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: trimmed }),
