@@ -26,3 +26,6 @@ netlify/functions/temples-meta.json
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Local Netlify folder
+.netlify

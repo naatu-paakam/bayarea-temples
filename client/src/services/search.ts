@@ -80,13 +80,15 @@ function keywordMatch(hay: string, keywords: string): boolean {
 }
 
 /**
- * Ask the LLM (via the Netlify Function proxy — the browser never sees the API key)
- * to classify a natural-language prompt into structured filters.
+ * Ask Claude via claude-proxy — returns a conversational answer AND structured
+ * filters extracted from the question.  The browser never sees the API key.
  * Falls back to keyword matching on any failure.
  */
-export async function classifySearch(prompt: string): Promise<{ filters: SearchFilters; viaLLM: boolean }> {
+export async function askClaude(
+  prompt: string,
+): Promise<{ answer: string; filters: SearchFilters; viaLLM: boolean }> {
   const trimmed = prompt.trim().slice(0, 500);
-  if (!trimmed) return { filters: EMPTY_FILTERS, viaLLM: false };
+  if (!trimmed) return { answer: '', filters: EMPTY_FILTERS, viaLLM: false };
   try {
     const res = await fetch('/.netlify/functions/search-classify', {
       method: 'POST',
@@ -95,10 +97,23 @@ export async function classifySearch(prompt: string): Promise<{ filters: SearchF
     });
     if (!res.ok) throw new Error(`function returned ${res.status}`);
     const data = await res.json();
-    return { filters: sanitizeFilters(data.filters), viaLLM: true };
-  } catch {
-    return { filters: keywordSearch(trimmed), viaLLM: false };
+    return {
+      answer: String(data.answer || ''),
+      filters: sanitizeFilters(data.filters),
+      viaLLM: true,
+    };
+  } catch (err) {
+    console.warn('askClaude fell back to keyword search:', err);
+    return { answer: '', filters: keywordSearch(trimmed), viaLLM: false };
   }
+}
+
+/**
+ * @deprecated use askClaude — kept for any existing callers.
+ */
+export async function classifySearch(prompt: string): Promise<{ filters: SearchFilters; viaLLM: boolean }> {
+  const { filters, viaLLM } = await askClaude(prompt);
+  return { filters, viaLLM };
 }
 
 export function applyFilters(templesList: Temple[], f: SearchFilters): Temple[] {
