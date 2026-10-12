@@ -88,7 +88,7 @@ export async function askClaude(
   prompt: string,
 ): Promise<{ answer: string; webSearch: string; filters: SearchFilters; viaLLM: boolean }> {
   const trimmed = prompt.trim().slice(0, 500);
-  if (!trimmed) return { answer: '', filters: EMPTY_FILTERS, viaLLM: false };
+  if (!trimmed) return { answer: '', webSearch: '', filters: EMPTY_FILTERS, viaLLM: false };
   try {
     const res = await fetch('/.netlify/functions/search-classify', {
       method: 'POST',
@@ -116,6 +116,8 @@ export async function classifySearch(prompt: string): Promise<{ filters: SearchF
   const { filters, viaLLM } = await askClaude(prompt);
   return { filters, viaLLM };
 }
+
+export type AskResult = Awaited<ReturnType<typeof askClaude>>;
 
 export function applyFilters(templesList: Temple[], f: SearchFilters): Temple[] {
   let out = templesList.filter((t) => {
